@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { deleteTask } from "@/services/api/tasks";
+import { deleteTask, findAllTasks } from "@/services/api/tasks";
 import { AlertConfirmation } from "./alert-confirmation";
 import { UpdateTaskDialog } from "./dialogs/update-task-dialog";
 
@@ -17,10 +17,7 @@ export function TasksList() {
 
   useEffect(() => {
     async function fetchTasks() {
-      const response = await fetch(
-        import.meta.env.VITE_API_BASE_URL + "/tasks"
-      );
-      const tasks = await response.json();
+      const tasks = await findAllTasks();
       setTasks(tasks);
     }
 

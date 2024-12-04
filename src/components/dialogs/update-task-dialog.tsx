@@ -24,10 +24,11 @@ export function UpdateTaskDialog({
 
   function handleOpenChange() {
     const isTaskFormModified = localStorage.getItem("taskFormModified");
-    console.log(isTaskFormModified)
 
-    if (isTaskFormModified) {
+    if (isTaskFormModified && JSON.parse(isTaskFormModified)) {
       setShowExitConfirmation(true);
+    } else {
+      setOpen(false)
     }
   }
 

@@ -1,13 +1,22 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Task } from "@/types/Task";
+
+import { TaskFormData, taskFormSchema } from "@/schemas/task";
+import { createTask } from "@/services/api/tasks";
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 
 type TaskFormProps = {
   task?: Task;
@@ -15,31 +24,30 @@ type TaskFormProps = {
   onSave?: () => void;
 };
 
-const taskFormSchema = z.object({
-  title: z.string().min(1, "Escreva um título.").trim(),
-  description: z.string().trim(),
-});
-
-type TaskFormData = z.infer<typeof taskFormSchema>;
-
 export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
-  const {
-    handleSubmit,
-    register,
-    reset,
-    formState: { errors, isDirty },
-  } = useForm<TaskFormData>({
+  const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
+    defaultValues: task
+      ? {
+          title: task.title,
+          description: task.description,
+        }
+      : {
+          title: "",
+          description: "",
+        },
   });
 
   async function onSubmit(data: TaskFormData) {
-    await fetch(import.meta.env.VITE_API_BASE_URL + "/tasks", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    reset();
-    if (onSave) {
-      onSave();
+    if (!task) {
+      // create
+      await createTask(data);
+      form.reset();
+      if (onSave) {
+        onSave();
+      }
+    } else {
+      // update
     }
   }
 
@@ -50,44 +58,59 @@ export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
   }
 
   useEffect(() => {
-    localStorage.setItem("taskFormModified", isDirty.toString());
-  }, [isDirty]);
+    localStorage.setItem("taskFormModified", form.formState.isDirty.toString());
+  }, [form.formState.isDirty]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="mb-3">
-        <Label htmlFor="title">Título</Label>
-        <Input
-          type="text"
-          id="title"
-          placeholder="Dê um título para a sua tarefa"
-          className={
-            errors.title && "border-red-300 focus-visible:ring-red-600"
-          }
-          {...register("title", { value: task?.title })}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem className="mb-3">
+              <Label htmlFor="title">Título</Label>
+              <FormControl>
+                <Input
+                  type="text"
+                  id="title"
+                  placeholder="Dê um título para a sua tarefa"
+                  className={
+                    form.formState.errors.title &&
+                    "border-red-300 focus-visible:ring-red-600"
+                  }
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {errors.title && (
-          <span className="text-red-500 font-medium text-sm">
-            {errors.title.message}
-          </span>
-        )}
-      </div>
 
-      <div className="mb-3">
-        <Label htmlFor="description">Descrição</Label>
-        <Textarea
-          id="description"
-          placeholder="Descreva o que será feito"
-          {...register("description", { value: task?.description })}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem className="mb-3">
+              <Label htmlFor="description">Descrição</Label>
+              <FormControl>
+                <Textarea
+                  id="description"
+                  placeholder="Descreva o que será feito"
+                  {...field}
+                />
+              </FormControl>
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-x-3">
-        <Button type="button" variant="outline" onClick={handleCancel}>
-          Cancelar
-        </Button>
-        <Button type="submit">{!task ? "Criar" : "Salvar alterações"}</Button>
-      </div>
-    </form>
+        <div className="space-x-3">
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">{!task ? "Criar" : "Salvar alterações"}</Button>
+        </div>
+      </form>
+    </Form>
   );
 }
