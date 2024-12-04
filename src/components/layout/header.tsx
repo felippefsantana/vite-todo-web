@@ -7,7 +7,7 @@ export function Header() {
   const [openNewTaskDialog, setOpenNewTaskDialog] = useState(false);
 
   return (
-    <header className="flex justify-between items-center mb-5">
+    <header className="flex justify-between items-center mb-8">
       <h1 className="text-2xl font-semibold">Minhas tarefas</h1>
 
       <Button onClick={() => setOpenNewTaskDialog(true)}>

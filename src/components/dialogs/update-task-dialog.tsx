@@ -28,8 +28,12 @@ export function UpdateTaskDialog({
     if (isTaskFormModified && JSON.parse(isTaskFormModified)) {
       setShowExitConfirmation(true);
     } else {
-      setOpen(false)
+      setOpen(false);
     }
+  }
+
+  function closeUpdateTaskDialog() {
+    setOpen(false);
   }
 
   return (
@@ -48,7 +52,7 @@ export function UpdateTaskDialog({
         <AlertConfirmation
           open={showExitConfirmation}
           setOpen={setShowExitConfirmation}
-          confirmationAction={() => setOpen(false)}
+          confirmationAction={closeUpdateTaskDialog}
           title="Sair sem salvar?"
           message="Você tem alterações não salvas. Por favor, confirme que deseja sair sem salvar."
         />

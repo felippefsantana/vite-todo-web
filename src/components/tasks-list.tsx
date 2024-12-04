@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Task } from "@/types/Task";
-import { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import background from "@/assets/undraw_completed_tasks.svg";
 import { Button } from "./ui/button";
 import {
   Tooltip,
@@ -11,23 +14,38 @@ import {
 import { deleteTask, findAllTasks } from "@/services/api/tasks";
 import { AlertConfirmation } from "./alert-confirmation";
 import { UpdateTaskDialog } from "./dialogs/update-task-dialog";
+import { Skeleton } from "./ui/skeleton";
 
 export function TasksList() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { data: tasks, isLoading } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: findAllTasks,
+  });
 
-  useEffect(() => {
-    async function fetchTasks() {
-      const tasks = await findAllTasks();
-      setTasks(tasks);
-    }
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => {
+          return <Skeleton key={i} className="h-16 w-full rounded-xl" />;
+        })}
+      </div>
+    );
+  }
 
-    fetchTasks();
-  }, []);
+  if (!tasks?.length) {
+    return (
+      <div className="flex flex-col justify-center items-center gap-6">
+        <h2 className="font-semibold text-2xl">Você ainda não tem tarefas para concluir.</h2>
+        <img src={background} alt="tarefas completas" width={480} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
-      {tasks.length > 0 &&
-        tasks.map((task) => <TaskListItem key={task.id} task={task} />)}
+      {tasks?.map((task, i) => (
+        <TaskListItem key={i} task={task} />
+      ))}
     </div>
   );
 }
@@ -37,11 +55,19 @@ type TaskListItemProps = {
 };
 
 function TaskListItem({ task }: TaskListItemProps) {
+  const queryClient = useQueryClient();
   const [openDeleteAlertDialog, setOpenDeleteAlertDialog] = useState(false);
   const [openUpdateTaskDialog, setOpenUpdateTaskDialog] = useState(false);
 
+  const { mutateAsync: deleteTaskFn } = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
   async function handleDeleteTask() {
-    await deleteTask(task.id);
+    await deleteTaskFn(task.id);
     setOpenDeleteAlertDialog(false);
   }
 

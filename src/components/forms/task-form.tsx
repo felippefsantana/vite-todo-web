@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Task } from "@/types/Task";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { TaskFormData, taskFormSchema } from "@/schemas/task";
-import { createTask } from "@/services/api/tasks";
+import { createTask, updateTask } from "@/services/api/tasks";
 
+import { Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +27,7 @@ type TaskFormProps = {
 };
 
 export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
+  const queryClient = useQueryClient();
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: task
@@ -38,16 +41,46 @@ export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
         },
   });
 
+  const { mutateAsync: createTaskFn } = useMutation({
+    mutationFn: createTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    // onSuccess(_, variables) {
+    //   const cached = queryClient.getQueryData(["tasks"]);
+
+    //   queryClient.setQueryData(["tasks"], (data) => {
+    //     return [
+    //       ...data,
+    //       {
+    //         title: variables.title,
+    //         description: variables.description,
+    //       },
+    //     ];
+    //   });
+    // },
+  });
+
+  const { mutateAsync: updateTaskFn } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: TaskFormData }) =>
+      updateTask(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
   async function onSubmit(data: TaskFormData) {
     if (!task) {
       // create
-      await createTask(data);
+      await createTaskFn(data);
       form.reset();
-      if (onSave) {
-        onSave();
-      }
     } else {
       // update
+      await updateTaskFn({ id: task.id, data });
+    }
+
+    if (onSave) {
+      onSave();
     }
   }
 
@@ -108,7 +141,16 @@ export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
           <Button type="button" variant="outline" onClick={handleCancel}>
             Cancelar
           </Button>
-          <Button type="submit">{!task ? "Criar" : "Salvar alterações"}</Button>
+          {form.formState.isSubmitting ? (
+            <Button type="button" disabled>
+              <Loader2 className="animate-spin" />
+              Aguarde
+            </Button>
+          ) : (
+            <Button type="submit">
+              {!task ? "Criar" : "Salvar alterações"}
+            </Button>
+          )}
         </div>
       </form>
     </Form>
