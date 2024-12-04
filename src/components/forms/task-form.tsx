@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 type TaskFormProps = {
   task?: Task;
@@ -26,14 +27,14 @@ export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
     handleSubmit,
     register,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskFormSchema),
   });
 
   async function onSubmit(data: TaskFormData) {
     await fetch(import.meta.env.VITE_API_BASE_URL + "/tasks", {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data),
     });
     reset();
@@ -47,6 +48,10 @@ export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
       onCancel();
     }
   }
+
+  useEffect(() => {
+    localStorage.setItem("taskFormModified", isDirty.toString());
+  }, [isDirty]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -81,9 +86,7 @@ export function TaskForm({ onCancel, onSave, task }: TaskFormProps) {
         <Button type="button" variant="outline" onClick={handleCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
-          { !task ? "Criar" : "Salvar alterações" }
-        </Button>
+        <Button type="submit">{!task ? "Criar" : "Salvar alterações"}</Button>
       </div>
     </form>
   );
