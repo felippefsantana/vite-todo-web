@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Task } from "@/types/Task";
 import { Pencil, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 import background from "@/assets/undraw_completed_tasks.svg";
@@ -116,6 +118,21 @@ function TaskListItem({ task }: TaskListItemProps) {
                   {task.title}
                 </h2>
                 <p className="text-sm">{task.description}</p>
+                <div className="mt-2 space-x-5">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                    Criada em:{" "}
+                    {format(task.createdAt, "PPP HH:mm:ss", { locale: ptBR })}
+                  </span>
+
+                  {task.isCompleted && task.completedAt && (
+                    <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      Concluída em:{" "}
+                      {format(task.completedAt, "PPP HH:mm:ss", {
+                        locale: ptBR,
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-x-3 shrink-0">
