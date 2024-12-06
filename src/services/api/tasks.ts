@@ -15,6 +15,13 @@ export async function updateTask(taskId: string, data: TaskFormData) {
   await api.patch(`/tasks/${taskId}`, data);
 }
 
+export async function completeTask(
+  taskId: string,
+  data: { isCompleted: boolean }
+) {
+  await api.patch(`/tasks/complete/${taskId}`, data);
+}
+
 export async function deleteTask(taskId: string) {
   await api.delete(`/tasks/${taskId}`);
 }
