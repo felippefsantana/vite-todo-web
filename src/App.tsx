@@ -1,5 +1,5 @@
 import { Header } from "./components/layout/header";
-import { TasksList } from "./components/tasks-list";
+import { TodoList } from "./components/todo/todo-list";
 import { ThemeProvider } from "./providers/theme-provider";
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
       <div className="h-dvh flex justify-center">
         <main className="container px-5 py-4">
           <Header />
-          <TasksList />
+          <TodoList />
         </main>
       </div>
     </ThemeProvider>

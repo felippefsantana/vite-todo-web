@@ -1,66 +1,28 @@
 import { useState } from "react";
 import { Task } from "@/types/Task";
 import { Pencil, Trash2 } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-import background from "@/assets/undraw_completed_tasks.svg";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { completeTask, deleteTask, findAllTasks } from "@/services/api/tasks";
-import { AlertConfirmation } from "./alert-confirmation";
-import { UpdateTaskDialog } from "./dialogs/update-task-dialog";
-import { Skeleton } from "./ui/skeleton";
-import { Checkbox } from "./ui/checkbox";
+import { completeTask, deleteTask } from "@/services/api/tasks";
+import { AlertConfirmation } from "@/components/alert-confirmation";
+import { UpdateTaskDialog } from "@/components/dialogs/update-task-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export function TasksList() {
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: findAllTasks,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => {
-          return <Skeleton key={i} className="h-16 w-full rounded-xl" />;
-        })}
-      </div>
-    );
-  }
-
-  if (!tasks?.length) {
-    return (
-      <div className="flex flex-col justify-center items-center gap-6">
-        <h2 className="font-semibold text-2xl">
-          Você ainda não tem tarefas para concluir.
-        </h2>
-        <img src={background} alt="tarefas completas" width={480} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {tasks?.map((task, i) => (
-        <TaskListItem key={i} task={task} />
-      ))}
-    </div>
-  );
-}
-
-type TaskListItemProps = {
+type TodoItemProps = {
   task: Task;
 };
 
-function TaskListItem({ task }: TaskListItemProps) {
+export function TodoItem({ task }: TodoItemProps) {
   const queryClient = useQueryClient();
   const [openDeleteAlertDialog, setOpenDeleteAlertDialog] = useState(false);
   const [openUpdateTaskDialog, setOpenUpdateTaskDialog] = useState(false);
@@ -117,7 +79,13 @@ function TaskListItem({ task }: TaskListItemProps) {
                 >
                   {task.title}
                 </h2>
-                <p className="text-sm">{task.description}</p>
+                {task.description && (
+                  <div>
+                    <p className="text-sm peer">{task.description}</p>
+                    {/* <span className="absolute bottom-0 h-6 w-full z-10 bg-gradient-to-t from-white dark:from-neutral-950"></span> */}
+                  </div>
+                )}
+
                 <div className="mt-2 space-x-5">
                   <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                     Criada em:{" "}

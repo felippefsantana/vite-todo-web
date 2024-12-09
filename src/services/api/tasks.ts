@@ -6,6 +6,11 @@ export async function createTask(data: TaskFormData) {
   await api.post("/tasks", data);
 }
 
+export async function findTaskById(taskId: string): Promise<Task> {
+  const response = await api.get(`/tasks/${taskId}`);
+  return response.data;
+}
+
 export async function findAllTasks(): Promise<Task[]> {
   const response = await api.get("/tasks");
   return response.data;
